@@ -1,11 +1,9 @@
-from djoser.serializers import UserSerializer
 from drf_base64.fields import Base64ImageField
-from rest_framework import serializers
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework.generics import get_object_or_404
-from recipes.models import (Tags, Ingredients, Recipes,
-                            IngredientsInRecipe, FavouriteRecipes, ShoppingLists)
+from recipes.models import (Tags, Ingredients, Recipes, IngredientsInRecipe,
+                            FavouriteRecipes, ShoppingLists)
 from users.models import User, Follow
 
 
@@ -44,8 +42,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
-                  'last_name')
-    
+                  'last_name', 'role')
+
     def validate_username(self, value):
         """Проверка имени пользователя."""
         if value == 'me':
@@ -63,7 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
             return serializers.ValidationError(
                 'Данный email уже зарегистрирован')
         return value
-    
+
 
 class SignUpSerializer(serializers.Serializer):
     """Сериализация объектов типа User при регистрации."""
@@ -82,7 +80,13 @@ class SignUpSerializer(serializers.Serializer):
                 'Нельзя использовать "me" в качестве имени пользователя'
             )
         return value
-    
+
+
+class GetTokenSerializer(serializers.Serializer):
+    """Сериализация объектов типа Users при получении токена."""
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField()
+
 
 class UserReadSerializer(GetIsFollowMixin, serializers.ModelSerializer):
     """Сериализация объектов типа User. Список пользователей."""
@@ -201,10 +205,10 @@ class RecipesWriteSerializer(GetIngredientsMixin, serializers.ModelSerializer):
         instance = self.add_ingredients_and_tags(
             instance, ingredients=ingredients, tags=tags)
         return super().update(instance, validated_data)
-    
+
 
 class RecipeAddingSerializer(serializers.ModelSerializer):
-    """Сериализация объектов типа Recipes. 
+    """Сериализация объектов типа Recipes.
     Добавление в избранное/список покупок."""
     class Meta:
         model = Recipes
@@ -227,7 +231,6 @@ class FollowSerializer(GetIsFollowMixin, serializers.ModelSerializer):
         model = Follow
         fields = ('id', 'email', 'username', 'first_name', 'last_name',
                   'is_following', 'recipes', 'recipes_count')
-
 
     def get_recipes(self, obj):
         """Список подписок с рецептами."""
@@ -333,4 +336,4 @@ class CheckShoppingListsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Рецепт отсутствует в спске покупок!'
             )
-        return 
+        return

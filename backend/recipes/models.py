@@ -14,11 +14,10 @@ class Tags(models.Model):
         verbose_name='Цвет HEX',
         max_length=7,
         unique=True,
-         validators=[
-            RegexValidator(
-                '^#([a-fA-F0-9]{6})', # строка должа начинаться с '#', пример #49B64E
-                message='Поле должно содержать HEX-код выбранного цвета.'
-            )
+        validators=[
+            RegexValidator('^#([a-fA-F0-9]{6})',
+                           message='Поле должно содержать HEX-код цвета.'
+                           )
         ]
     )
     slug = models.SlugField(
@@ -54,7 +53,7 @@ class Ingredients(models.Model):
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}.'
-    
+
 
 class Recipes(models.Model):
     """Модель для рецептов."""
@@ -90,7 +89,7 @@ class Recipes(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (в минутах)',
         validators=[
-            MinValueValidator(1, 'Время приготовления не может быть меньше 1 минуты.')
+            MinValueValidator(1, 'Время должно быть от 1 минуты.')
         ]
     )
     pud_date = models.DateTimeField(
@@ -105,7 +104,8 @@ class Recipes(models.Model):
 
     def __str__(self):
         return f'{self.name}'
-    
+
+
 class IngredientsInRecipe(models.Model):
     """Вспомогательная модель для количества ингредиентов в рецепте."""
     recipe = models.ForeignKey(

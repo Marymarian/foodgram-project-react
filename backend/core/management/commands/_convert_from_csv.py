@@ -8,7 +8,7 @@ PROJECT_DIR = settings.BASE_DIR
 
 
 def cvs_to_dj_model():
-    """Функция конвертора данных cvs в БД средствами Django"""
+    """Конвертирование данных из cvs-файла в БД."""
     data_dir = os.fspath(PurePath(settings.BASE_DIR.resolve().parent, 'data'))
     file = f'{data_dir}/ingredients.csv'
     with open(file, newline='', encoding='utf-8') as f:
