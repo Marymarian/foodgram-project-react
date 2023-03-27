@@ -95,6 +95,8 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+# Для отладки оставила бд sql, перед сборкой в контейнер заменю на постгрес.
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
