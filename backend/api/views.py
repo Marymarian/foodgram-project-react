@@ -1,31 +1,26 @@
 from http import HTTPStatus
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from rest_framework.response import Response
-from rest_framework import (viewsets, status, serializers, mixins)
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework import (viewsets, mixins)
+from rest_framework.decorators import action
 from django.db import transaction
 from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
 from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
-from django.db import IntegrityError
-from django.contrib.auth.tokens import default_token_generator
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.filters import SearchFilter
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated, AllowAny
+from djoser.views import UserViewSet
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from .filters import IngredientsSearchFilter, RecipesFilter
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsAdminAuthorOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAdminAuthorOrReadOnly
 from users.models import User, Follow
 from recipes.models import (Tags, Ingredients, Recipes, ShoppingLists,
                             IngredientsInRecipe, FavouriteRecipes)
-from .serializers import (CheckFavouriteSerializer, GetTokenSerializer,
+from .serializers import (CheckFavouriteSerializer,
                           CheckFollowSerializer, FollowSerializer,
                           IngredientsSerializer, RecipeAddingSerializer,
                           RecipesReadSerializer, RecipesWriteSerializer,
-                          TagsSerializer, UserSerializer, SignUpSerializer,
-                          CheckShoppingListsSerializer)
-from foodgram.settings import DOMAIN_NAME
+                          TagsSerializer, CheckShoppingListsSerializer)
 
+User = get_user_model()
 
 FILE_NAME = 'shopping_list.txt'
 TITLE_SHOP_LIST = 'Список покупок:\n\nНаименование - Кол-во/Ед.изм.\n'
@@ -34,81 +29,6 @@ TITLE_SHOP_LIST = 'Список покупок:\n\nНаименование - К
 class ListRetrieveViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,
                           mixins.RetrieveModelMixin):
     permission_classes = (IsAdminOrReadOnly, )
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    """
-    Администратор получает список пользователей, может создавать
-    пользователя. Пользователь по url 'users/me/' может получать и изменять
-    свои данные, кроме поля 'Роль'.
-    """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsAdmin, )
-    filter_backends = (SearchFilter,)
-    search_fields = ('username',)
-    lookup_field = 'username'
-    pagination_class = PageNumberPagination
-
-    @action(methods=('get', 'patch',), detail=False, url_path='me',
-            permission_classes=(IsAuthenticated,))
-    def user_own_account(self, request):
-        user = request.user
-        if request.method == 'GET':
-            serializer = self.get_serializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        serializer = self.get_serializer(user, data=request.data,
-                                         partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=user.role, partial=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def signup(request):
-    """
-    Пользователь отправляет свои 'username' и 'email' на 'auth/signup/ и
-    получает код подтверждения на email.
-    """
-    serializer = SignUpSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data['username']
-    email = serializer.validated_data['email']
-    try:
-        user, created = User.objects.get_or_create(username=username,
-                                                   email=email)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            'Код подтверждения',
-            f'Ваш код подтверждения: {confirmation_code}',
-            DOMAIN_NAME,
-            [user.email],
-            fail_silently=False,
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    except IntegrityError:
-        raise serializers.ValidationError(
-            'Данные имя пользователя или Email уже зарегистрированы'
-        )
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def get_token(request):
-    """
-    Пользователь отправляет свои 'username' и 'confirmation_code'
-    на 'auth/token/ и получает токен.
-    """
-    serializer = GetTokenSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data['username']
-    confirmation_code = serializer.validated_data['confirmation_code']
-    user = get_object_or_404(User, username=username)
-    if default_token_generator.check_token(user, confirmation_code):
-        token = str(AccessToken.for_user(user))
-        return Response({'token': token}, status=status.HTTP_200_OK)
-    raise serializers.ValidationError('Введен неверный код.')
 
 
 class TagsViewSet(ListRetrieveViewSet):

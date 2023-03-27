@@ -1,11 +1,14 @@
+from django.contrib.auth import get_user_model
 from drf_base64.fields import Base64ImageField
 from rest_framework import serializers
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework.validators import UniqueValidator
 from rest_framework.generics import get_object_or_404
 from recipes.models import (Tags, Ingredients, Recipes, IngredientsInRecipe,
                             FavouriteRecipes, ShoppingLists)
-from users.models import User, Follow
+from users.models import Follow
 
+User = get_user_model()
 
 class GetIsFollowMixin:
     """Миксин для отображения подписок."""
@@ -27,77 +30,30 @@ class GetIngredientsMixin:
         )
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализация объектов типа User."""
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z',
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
+class CustomUserCreateSerializer(UserCreateSerializer):
+    """Сериализация объектов типа User. Создание пользователя."""
     email = serializers.EmailField(
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
+        validators=[UniqueValidator(queryset=User.objects.all())])
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=User.objects.all())])
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name',
-                  'last_name', 'role')
-
-    def validate_username(self, value):
-        """Проверка имени пользователя."""
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Нельзя использовать "me" в качестве имени пользователя'
-            )
-        if User.objects.filter(username=value).exists():
-            return serializers.ValidationError(
-                'Данное имя пользователя уже существует')
-        return value
-
-    def validate_email(self, value):
-        """Проверка email-а пользователя."""
-        if User.objects.filter(email=value).exists():
-            return serializers.ValidationError(
-                'Данный email уже зарегистрирован')
-        return value
+        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+                  'password',)
 
 
-class SignUpSerializer(serializers.Serializer):
-    """Сериализация объектов типа User при регистрации."""
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z',
-        required=True
-    )
-    email = serializers.EmailField(
-        required=True
-    )
-
-    def validate_username(self, value):
-        """Валидация имени пользователя."""
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Нельзя использовать "me" в качестве имени пользователя'
-            )
-        return value
-
-
-class GetTokenSerializer(serializers.Serializer):
-    """Сериализация объектов типа Users при получении токена."""
-    username = serializers.CharField()
-    confirmation_code = serializers.CharField()
-
-
-class UserReadSerializer(GetIsFollowMixin, serializers.ModelSerializer):
-    """Сериализация объектов типа User. Список пользователей."""
-    is_following = serializers.SerializerMethodField()
+class CustomUserListSerializer(GetIsFollowMixin, UserSerializer):
+    """Сериализация объектов типа User. Просмотр пользователя."""
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username',
-                  'first_name', 'last_name',
-                  'is_following')
-        read_only_fields = ('is_following', )
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'is_subscribed')
+        read_only_fields = ('is_subscribed', )
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -208,8 +164,10 @@ class RecipesWriteSerializer(GetIngredientsMixin, serializers.ModelSerializer):
 
 
 class RecipeAddingSerializer(serializers.ModelSerializer):
-    """Сериализация объектов типа Recipes.
-    Добавление в избранное/список покупок."""
+    """
+    Сериализация объектов типа Recipes.
+    Добавление в избранное/список покупок.
+    """
     class Meta:
         model = Recipes
         fields = ('id', 'name', 'image', 'cooking_time')

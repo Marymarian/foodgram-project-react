@@ -1,31 +1,19 @@
 from rest_framework import permissions
 
 
-class IsAdmin(permissions.BasePermission):
-    """Доступ разрешен только администраторам."""
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated
-                and request.user.is_admin)
-
-
 class IsAdminOrReadOnly(permissions.BasePermission):
-    """Доступ на чтение разрешен всем, на изменение - администраторам."""
+    """Разрешение администратору, на чтение-всем."""
+
     def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS
-                or (request.user.is_authenticated
-                    and request.user.is_admin))
+        return request.method in permissions.SAFE_METHODS or (
+            request.user.is_authenticated
+            and (request.user.is_admin or request.user.is_superuser)
+        )
 
 
-class IsAdminAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Доступ к чтению списков разрешен всем, изменению - авторизованным
-    пользователям. Доступ к чтению объектов разрешен всем, к изменению -
-    автору, администраторам.
-    """
-    def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated)
-
+class IsAdminAuthorOrReadOnly(permissions.IsAuthenticatedOrReadOnly):
+    """Разрешение дминистратору/автору, остальным чтение."""
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS
-                or (request.user.is_admin or obj.author == request.user))
+                or (request.user == obj.author)
+                or request.user.is_staff)

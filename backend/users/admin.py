@@ -1,18 +1,23 @@
 from django.contrib import admin
-from .models import Follow, User
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+
+from .models import Follow
 
 
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    """В админке: отображение, поиск, фильтр полей User."""
-    list_display = ('pk', 'username', 'email', 'first_name', 'last_name')
-    search_fields = ('username', 'email')
-    list_filter = ('username', 'email')
+class CustomUserAdmin(UserAdmin):
+    """В админке: отобр. и фильтр полей User."""
+    list_display = ('email', 'username')
+    list_filter = ('email', 'username')
 
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    """В админке: отображение, поиск, фильтр полей Follow."""
-    list_display = ('pk', 'user', 'author')
+    """В админке: отобр.,фильтр, поиск полей Follow."""
+    list_display = ('id', 'user', 'author')
     search_fields = ('user', 'author')
     list_filter = ('user', 'author')
+
+
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
