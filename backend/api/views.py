@@ -11,7 +11,7 @@ from djoser.views import UserViewSet
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from .filters import IngredientsSearchFilter, RecipesFilter
 from .permissions import IsAdminOrReadOnly, IsAdminAuthorOrReadOnly
-from users.models import User, Follow
+from users.models import Follow
 from recipes.models import (Tags, Ingredients, Recipes, ShoppingLists,
                             IngredientsInRecipe, FavouriteRecipes)
 from .serializers import (CheckFavouriteSerializer,

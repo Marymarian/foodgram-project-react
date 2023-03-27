@@ -4,6 +4,7 @@ from django.db import models
 
 User = get_user_model()
 
+
 class Tags(models.Model):
     """Модель для тегов."""
     name = models.CharField(

@@ -10,6 +10,7 @@ from users.models import Follow
 
 User = get_user_model()
 
+
 class GetIsFollowMixin:
     """Миксин для отображения подписок."""
     def get_is_following(self, obj):
