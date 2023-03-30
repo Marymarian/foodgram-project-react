@@ -25,8 +25,13 @@ class Follow(models.Model):
         ordering = ('id',)
         constraints = (
             models.UniqueConstraint(
-                fields=('user', 'author',), name='unique_follow'
+            fields=('user', 'author',),
+            name='unique_follow'
             ),
+            models.CheckConstraint(
+            check=models.Q(user=models.F('author')),
+            name='self_subscription_prohibited'
+            )
         )
 
     def __str__(self):

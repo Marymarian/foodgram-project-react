@@ -16,11 +16,11 @@ class Tags(models.Model):
         verbose_name='Цвет HEX',
         max_length=7,
         unique=True,
-        validators=(
+        validators=[
             RegexValidator('^#([a-fA-F0-9]{6})',
                            message='Поле должно содержать HEX-код цвета.'
                            )
-        )
+        ]
     )
     slug = models.SlugField(
         verbose_name='Уникальный слаг',
@@ -90,9 +90,9 @@ class Recipes(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (в минутах)',
-        validators=(
+        validators=[
             MinValueValidator(1, 'Время должно быть от 1 минуты.')
-        )
+        ]
     )
     pud_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -125,21 +125,21 @@ class IngredientsInRecipe(models.Model):
     amount = models.PositiveIntegerField(
         default=1,
         verbose_name='Количество в рецепте',
-        validators=(
+        validators=[
             MinValueValidator(1, 'В рецепте должны быть ингредиенты.')
-        )
+        ]
     )
 
     class Meta:
         verbose_name = 'Ингредиент для рецепта'
         verbose_name_plural = 'Ингредиенты для рецепта'
         ordering = ('id',)
-        constraints = (
+        constraints = [
             models.UniqueConstraint(
                 fields=('recipe', 'ingredient'),
                 name='unique_ingredient'
             )
-        )
+        ]
 
     def __str__(self):
         return f'{self.ingredient.name} - {self.amount}'
@@ -164,12 +164,12 @@ class FavouriteRecipes(models.Model):
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
         ordering = ('-id',)
-        constraints = (
+        constraints = [
             models.UniqueConstraint(
                 fields=('user', 'recipe'),
                 name='unique_user_recipe'
             )
-        )
+        ]
 
     def __str__(self):
         return f'{self.user} - {self.recipe.name}'
@@ -194,9 +194,9 @@ class ShoppingLists(models.Model):
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
         ordering = ('-id',)
-        constraints = (
+        constraints = [
             models.UniqueConstraint(
                 fields=('user', 'recipe'),
                 name='unique_list_user'
             )
-        )
+        ]
