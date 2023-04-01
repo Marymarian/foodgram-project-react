@@ -3,7 +3,7 @@ from ._convert_from_csv import cvs_to_dj_model
 
 
 class Command(BaseCommand):
-    help = 'Конвертор данных cvs в db.sqlite3'
+    help = 'Конвертор данных cvs в sqldb'
 
     def handle(self, *args, **options):
         try:
