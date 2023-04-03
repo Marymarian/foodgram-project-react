@@ -1,8 +1,14 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_base64.fields import Base64ImageField
-from recipes.models import (FavouriteRecipes, Ingredients, IngredientsInRecipe,
-                            Recipes, ShoppingLists, Tags)
+from recipes.models import (
+    FavouriteRecipes,
+    Ingredients,
+    IngredientsInRecipe,
+    Recipes,
+    ShoppingLists,
+    Tags,
+)
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueValidator
@@ -73,7 +79,9 @@ class CustomUserListSerializer(GetIsFollowMixin, UserSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
+            "password",
         )
+        extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ("is_subscribed",)
 
 

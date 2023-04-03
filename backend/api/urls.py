@@ -11,7 +11,7 @@ from .views import (
 app_name = "api"
 
 router_v1 = DefaultRouter()
-router_v1.register("users", FollowViewSet)
+router_v1.register("users", FollowViewSet, basename="users")
 router_v1.register("recipes", RecipesViewSet, basename="recipes")
 router_v1.register("tags", TagsViewSet)
 router_v1.register("ingredients", IngredientsViewSet)

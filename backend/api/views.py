@@ -6,8 +6,14 @@ from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from recipes.models import (FavouriteRecipes, Ingredients, IngredientsInRecipe,
-                            Recipes, ShoppingLists, Tags)
+from recipes.models import (
+    FavouriteRecipes,
+    Ingredients,
+    IngredientsInRecipe,
+    Recipes,
+    ShoppingLists,
+    Tags,
+)
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -16,11 +22,17 @@ from users.models import Follow
 
 from .filters import IngredientsSearchFilter, RecipesFilter
 from .permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (CheckFavouriteSerializer, CheckFollowSerializer,
-                          CheckShoppingListsSerializer, FollowSerializer,
-                          IngredientsSerializer, RecipeAddingSerializer,
-                          RecipesReadSerializer, RecipesWriteSerializer,
-                          TagsSerializer)
+from .serializers import (
+    CheckFavouriteSerializer,
+    CheckFollowSerializer,
+    CheckShoppingListsSerializer,
+    FollowSerializer,
+    IngredientsSerializer,
+    RecipeAddingSerializer,
+    RecipesReadSerializer,
+    RecipesWriteSerializer,
+    TagsSerializer,
+)
 
 User = get_user_model()
 

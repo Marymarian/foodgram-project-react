@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -19,7 +18,7 @@ load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -86,8 +85,6 @@ WSGI_APPLICATION = "foodgram.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-# Для отладки оставила бд sql, перед сборкой в контейнер заменю на постгрес.
-
 DATABASES = {
     "default": {
         "ENGINE": os.getenv(
@@ -107,16 +104,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",  # noqa
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",  # noqa
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",  # noqa
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -155,8 +152,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
+    "DEFAULT_PAGINATION_CLASS": "api.paginations.LimitPageNumberPagination",
+    "PAGE_SIZE": 6,
 }
 
 DJOSER = {
