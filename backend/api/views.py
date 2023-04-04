@@ -214,28 +214,41 @@ class FollowViewSet(UserViewSet):
     """Класс взаимодействия с моделью Follow.Вьюсет подписок."""
 
     @action(
-        methods=["post", "delete"],
-        detail=True,
-        permission_classes=(IsAuthenticated,),
+        methods=["post"], detail=True, permission_classes=(IsAuthenticated,)
     )
+    @transaction.atomic()
     def subscribe(self, request, id=None):
+        user = request.user
         author = get_object_or_404(User, pk=id)
+        data = {
+            "user": user.id,
+            "author": author.id,
+        }
+        serializer = CheckFollowSerializer(
+            data=data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        result = Follow.objects.create(user=user, author=author)
+        serializer = FollowSerializer(result, context={"request": request})
+        return Response(serializer.data, status=HTTPStatus.CREATED)
 
-        if request.method == "POST":
-            serializer = FollowSerializer(
-                author, data=request.data, context={"request": request}
-            )
-            serializer.is_valid(raise_exception=True)
-            Follow.objects.create(user=request.user, author=author)
-            return Response(serializer.data, status=HTTPStatus.CREATED)
-
-        if request.method == "DELETE":
-            get_object_or_404(
-                Follow, user=request.user, author=author
-            ).delete()
-            return Response(
-                {"detail": "Вы отписались."}, status=HTTPStatus.CREATED
-            )
+    @subscribe.mapping.delete
+    @transaction.atomic()
+    def del_subscribe(self, request, id=None):
+        user = request.user
+        author = get_object_or_404(User, pk=id)
+        data = {
+            "user": user.id,
+            "author": author.id,
+        }
+        serializer = CheckFollowSerializer(
+            data=data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        user.follower.filter(author=author).delete()
+        return Response(status=HTTPStatus.NO_CONTENT)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):

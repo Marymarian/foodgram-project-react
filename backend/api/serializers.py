@@ -17,17 +17,6 @@ from users.models import Follow
 User = get_user_model()
 
 
-class GetIsFollowMixin:
-    """Миксин для отображения подписок."""
-
-    def get_is_following(self, obj):
-        """Отображение подписки на пользователя."""
-        user = self.context.get("request").user
-        if user.is_anonymous:
-            return False
-        return user.follower.filter(author=obj.id).exists()
-
-
 class GetIngredientsMixin:
     """Миксин для рецептов."""
 
@@ -247,6 +236,13 @@ class FollowSerializer(GetIsFollowMixin, serializers.ModelSerializer):
     def get_recipes_count(self, obj):
         """Общее количество рецептов пользователя."""
         return obj.author.recipes.all().count()
+
+    def get_is_subscribed(self, obj):
+        """Отображение подписки на пользователя."""
+        user = self.context.get("request").user
+        if user.is_anonymous:
+            return False
+        return user.follower.filter(author=obj.id).exists()
 
 
 class CheckFollowSerializer(serializers.ModelSerializer):
