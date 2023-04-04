@@ -217,7 +217,7 @@ class FollowViewSet(UserViewSet):
         methods=["post"], detail=True, permission_classes=(IsAuthenticated,)
     )
     @transaction.atomic()
-    def follow(self, request, id=None):
+    def subcribe(self, request, id=None):
         user = request.user
         author = get_object_or_404(User, pk=id)
         data = {
@@ -233,9 +233,9 @@ class FollowViewSet(UserViewSet):
         serializer = FollowSerializer(result, context={"request": request})
         return Response(serializer.data, status=HTTPStatus.CREATED)
 
-    @follow.mapping.delete
+    @subcribe.mapping.delete
     @transaction.atomic()
-    def del_follow(self, request, id=None):
+    def del_subcribe(self, request, id=None):
         user = request.user
         author = get_object_or_404(User, pk=id)
         data = {
