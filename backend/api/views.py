@@ -6,8 +6,14 @@ from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from recipes.models import (FavouriteRecipes, Ingredients, IngredientsInRecipe,
-                            Recipes, ShoppingLists, Tags)
+from recipes.models import (
+    FavouriteRecipes,
+    Ingredients,
+    IngredientsInRecipe,
+    Recipes,
+    ShoppingLists,
+    Tags,
+)
 from rest_framework import exceptions, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -16,10 +22,16 @@ from users.models import Follow
 
 from .filters import IngredientsSearchFilter, RecipesFilter
 from .permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (CheckFavouriteSerializer, CheckFollowSerializer,
-                          FollowSerializer, IngredientsSerializer,
-                          RecipeAddingSerializer, RecipesReadSerializer,
-                          RecipesWriteSerializer, TagsSerializer)
+from .serializers import (
+    CheckFavouriteSerializer,
+    CheckFollowSerializer,
+    FollowSerializer,
+    IngredientsSerializer,
+    RecipeAddingSerializer,
+    RecipesReadSerializer,
+    RecipesWriteSerializer,
+    TagsSerializer,
+)
 
 User = get_user_model()
 
@@ -88,32 +100,16 @@ class RecipesViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(
-        detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
+        detail=True,
+        methods=["post", "delete"],
+        permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request, pk=None):
-        """В избранное."""
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckFavouriteSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return self.add_object(FavouriteRecipes, request.user, pk)
-
-    @favorite.mapping.delete
-    def del_favorite(self, request, pk=None):
-        """Убрать из избранного."""
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckFavouriteSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return self.delete_object(FavouriteRecipes, request.user, pk)
+        """В избранное/из избранного."""
+        if request.method == "POST":
+            return self.add_to(FavouriteRecipes, request.user, pk)
+        else:
+            return self.delete_from(FavouriteRecipes, request.user, pk)
 
     @action(
         detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
