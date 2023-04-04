@@ -37,7 +37,7 @@ class GetIngredientsMixin:
             "id",
             "name",
             "measurement_unit",
-            amount=("ingredients_amount__amount"),
+            # amount=("ingredients_amount__amount"),
         )
 
 
@@ -70,6 +70,12 @@ class CustomUserListSerializer(GetIsFollowMixin, UserSerializer):
 
     is_subscribed = serializers.SerializerMethodField()
 
+    def get_is_subscribed(self, obj):
+        user = self.context.get("request").user
+        if user.is_anonymous:
+            return False
+        return user.follower.filter(author=obj.id).exists()
+
     class Meta:
         model = User
         fields = (
@@ -81,7 +87,6 @@ class CustomUserListSerializer(GetIsFollowMixin, UserSerializer):
             "is_subscribed",
             "password",
         )
-        extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ("is_subscribed",)
 
 

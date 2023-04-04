@@ -27,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv("SECRET_KEY", default="12345")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", default="True") == "True"
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -85,7 +85,7 @@ WSGI_APPLICATION = "foodgram.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
+DATABASES = DATABASES = {
     "default": {
         "ENGINE": os.getenv(
             "DB_ENGINE", default="django.db.backends.postgresql"

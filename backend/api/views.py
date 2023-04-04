@@ -14,7 +14,7 @@ from recipes.models import (
     ShoppingLists,
     Tags,
 )
-from rest_framework import mixins, viewsets
+from rest_framework import exceptions, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
@@ -25,7 +25,6 @@ from .permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (
     CheckFavouriteSerializer,
     CheckFollowSerializer,
-    CheckShoppingListsSerializer,
     FollowSerializer,
     IngredientsSerializer,
     RecipeAddingSerializer,
@@ -36,8 +35,8 @@ from .serializers import (
 
 User = get_user_model()
 
-FILE_NAME = "shopping_list.txt"
-TITLE_SHOP_LIST = "Список покупок:\n\nНаименование - Кол-во/Ед.изм.\n"
+FILE_NAME = "shopping-list.txt"
+TITLE_SHOP_LIST = "Список покупок с сайта Foodgram:\n\n"
 
 
 class ListRetrieveViewSet(
@@ -116,7 +115,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return self.add_object(FavouriteRecipes, request.user, pk)
 
     @favourite.mapping.delete
-    def del_favorite(self, request, pk=None):
+    def del_favourite(self, request, pk=None):
         """Убрать из избранного."""
         data = {
             "user": request.user.id,
@@ -133,28 +132,41 @@ class RecipesViewSet(viewsets.ModelViewSet):
     )
     def shopping_list(self, request, pk=None):
         """В список покупок."""
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckShoppingListsSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return self.add_object(ShoppingLists, request.user, pk)
+        user = self.request.user
+        recipe = get_object_or_404(Recipes, pk=pk)
+
+        if self.request.method == "POST":
+            if ShoppingLists.objects.filter(user=user, recipe=recipe).exists():
+                raise exceptions.ValidationError(
+                    "Рецепт уже в списке покупок."
+                )
+
+            ShoppingLists.objects.create(user=user, recipe=recipe)
+            serializer = RecipeAddingSerializer(
+                recipe, context={"request": request}
+            )
+
+            return Response(serializer.data, status=HTTPStatus.CREATED)
 
     @shopping_list.mapping.delete
     def del_shopping_list(self, request, pk=None):
         """Убрать из списка покупок."""
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckShoppingListsSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return self.delete_object(ShoppingLists, request.user, pk)
+        if self.request.method == "DELETE":
+            if not ShoppingLists.objects.filter(
+                user=request.user.id, recipe=pk
+            ).exists():
+                raise exceptions.ValidationError(
+                    "Рецепта нет в списке покупок, либо он уже удален."
+                )
+
+            shopping_cart = get_object_or_404(
+                ShoppingLists, user=request.user.id, recipe=pk
+            )
+            shopping_cart.delete()
+
+            return Response(status=HTTPStatus.NO_CONTENT)
+
+        return Response(status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     @transaction.atomic()
     def add_object(self, model, user, pk):
@@ -174,24 +186,28 @@ class RecipesViewSet(viewsets.ModelViewSet):
         methods=["get"], detail=False, permission_classes=(IsAuthenticated,)
     )
     def download_shopping_list(self, request):
-        "Выгрузка списка покупок."
-        ingredients = (
-            IngredientsInRecipe.objects.filter(recipe__list__user=request.user)
-            .values("ingredient__name", "ingredient__measurement_unit")
-            .order_by("ingredient__name")
-            .annotate(total=Sum("amount"))
+        """Получение списка покупок в файле."""
+        shopping_list = ShoppingLists.objects.filter(user=self.request.user)
+        recipes = [item.recipe.id for item in shopping_list]
+        buy_list = (
+            IngredientsInRecipe.objects.filter(recipe__in=recipes)
+            .values("ingredient")
+            .annotate(amount=Sum("amount"))
         )
+
         result = TITLE_SHOP_LIST
-        result += "\n".join(
-            [
-                f'{ingredient["ingredient__name"]} - {ingredient["total"]}/'
-                f'{ingredient["ingredient__measurement_unit"]}'
-                for ingredient in ingredients
-            ]
-        )
+        for item in buy_list:
+            ingredient = Ingredients.objects.get(pk=item["ingredient"])
+            amount = item["amount"]
+            result += (
+                f"{ingredient.name}, {amount} "
+                f"{ingredient.measurement_unit}\n"
+            )
+
         response = HttpResponse(result, content_type="text/plain")
         response["Content-Disposition"] = f"attachment; filename={FILE_NAME}"
-        return
+
+        return response
 
 
 class FollowViewSet(UserViewSet):
