@@ -102,7 +102,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @action(
         detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
     )
-    def favourite(self, request, pk=None):
+    def favorite(self, request, pk=None):
         """В избранное."""
         data = {
             "user": request.user.id,
@@ -114,8 +114,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         return self.add_object(FavouriteRecipes, request.user, pk)
 
-    @favourite.mapping.delete
-    def del_favourite(self, request, pk=None):
+    @favorite.mapping.delete
+    def del_favorite(self, request, pk=None):
         """Убрать из избранного."""
         data = {
             "user": request.user.id,
