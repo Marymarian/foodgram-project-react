@@ -54,7 +54,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         )
 
 
-class CustomUserListSerializer(GetIsFollowMixin, UserSerializer):
+class CustomUserListSerializer(UserSerializer):
     """Сериализация объектов типа User. Просмотр пользователя."""
 
     is_subscribed = serializers.SerializerMethodField()
@@ -199,7 +199,7 @@ class RecipeAddingSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "name", "image", "cooking_time")
 
 
-class FollowSerializer(GetIsFollowMixin, serializers.ModelSerializer):
+class FollowSerializer(serializers.ModelSerializer):
     """Сериализация объектов типа Follow. Подписки."""
 
     id = serializers.ReadOnlyField(source="author.id")
