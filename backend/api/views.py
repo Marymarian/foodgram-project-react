@@ -130,7 +130,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @action(
         detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
     )
-    def shopping_list(self, request, pk=None):
+    def shopping_cart(self, request, pk=None):
         """В список покупок."""
         user = self.request.user
         recipe = get_object_or_404(Recipes, pk=pk)
@@ -148,8 +148,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
             return Response(serializer.data, status=HTTPStatus.CREATED)
 
-    @shopping_list.mapping.delete
-    def del_shopping_list(self, request, pk=None):
+    @shopping_cart.mapping.delete
+    def del_shopping_cart(self, request, pk=None):
         """Убрать из списка покупок."""
         if self.request.method == "DELETE":
             if not ShoppingLists.objects.filter(
@@ -185,7 +185,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @action(
         methods=["get"], detail=False, permission_classes=(IsAuthenticated,)
     )
-    def download_shopping_list(self, request):
+    def download_shopping_cart(self, request):
         """Получение списка покупок в файле."""
         shopping_list = ShoppingLists.objects.filter(user=self.request.user)
         recipes = [item.recipe.id for item in shopping_list]
