@@ -252,7 +252,7 @@ class FollowViewSet(UserViewSet):
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
-        """ "Подписчики."""
+        """Подписчики."""
         user = request.user
         queryset = user.follower.all()
         pages = self.paginate_queryset(queryset)
