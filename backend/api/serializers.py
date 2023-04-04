@@ -260,19 +260,19 @@ class CheckFollowSerializer(serializers.ModelSerializer):
         """Валидация подписки."""
         user = obj["user"]
         author = obj["author"]
-        follower = user.follower.filter(author=author).exists()
+        subscribed = user.follower.filter(author=author).exists()
 
         if self.context.get("request").method == "POST":
             if user == author:
                 raise serializers.ValidationError(
                     "Нельзя подписаться на самого себя!"
                 )
-            if follower:
+            if subscribed:
                 raise serializers.ValidationError("Вы уже подписаны!")
         if self.context.get("request").method == "DELETE":
             if user == author:
                 raise serializers.ValidationError("Нельзя отписаться от себя!")
-            if not follower:
+            if not subscribed:
                 raise serializers.ValidationError("Вы уже не подписаны!")
         return obj
 
@@ -291,13 +291,13 @@ class CheckFavouriteSerializer(serializers.ModelSerializer):
         """Валидация избранного."""
         user = self.context["request"].user
         recipe = obj["recipe"]
-        favourite = user.favourites.filter(recipe=recipe).exists()
+        favorite = user.favorites.filter(recipe=recipe).exists()
 
-        if self.context.get("request").method == "POST" and favourite:
+        if self.context.get("request").method == "POST" and favorite:
             raise serializers.ValidationError(
                 "Рецепт уже добавлен в избранное!"
             )
-        if self.context.get("request").method == "DELETE" and not favourite:
+        if self.context.get("request").method == "DELETE" and not favorite:
             raise serializers.ValidationError("Рецепт не в избранном!")
         return obj
 
