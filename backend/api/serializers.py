@@ -309,18 +309,18 @@ class CheckShoppingListsSerializer(serializers.ModelSerializer):
         model = ShoppingLists
         fields = ("user", "recipe")
 
-    def validate(self, obj):
-        """Валидация списка покупок."""
-        user = self.context["request"].user
-        recipe = obj["recipe"]
-        shop_list = user.list.filter(recipe=recipe).exists()
+    # def validate(self, obj):
+    #     """Валидация списка покупок."""
+    #     user = self.context["request"].user
+    #     recipe = obj["recipe"]
+    #     shop_list = user.list.filter(recipe=recipe).exists()
 
-        if self.context.get("request").method == "POST" and shop_list:
-            raise serializers.ValidationError(
-                "Рецепт уже есть в списке покупок!"
-            )
-        if self.context.get("request").method == "DELETE" and not shop_list:
-            raise serializers.ValidationError(
-                "Рецепт отсутствует в спске покупок!"
-            )
-        return
+    #     if self.context.get("request").method == "POST" and shop_list:
+    #         raise serializers.ValidationError(
+    #             "Рецепт уже есть в списке покупок!"
+    #         )
+    #     if self.context.get("request").method == "DELETE" and not shop_list:
+    #         raise serializers.ValidationError(
+    #             "Рецепт отсутствует в спске покупок!"
+    #         )
+    #     return
