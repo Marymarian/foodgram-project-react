@@ -100,7 +100,7 @@ class RecipesReadSerializer(GetIngredientsMixin, serializers.ModelSerializer):
     """Сериализация объектов типа Recipes. Чтение рецептов."""
 
     tags = TagsSerializer(many=True)
-    author = UserSerializer()
+    author = CustomUserListSerializer()
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.BooleanField(default=False)
     in_the_shopping_list = serializers.BooleanField(default=False)
