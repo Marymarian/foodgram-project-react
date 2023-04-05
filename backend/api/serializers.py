@@ -26,7 +26,7 @@ class GetIngredientsMixin:
             "id",
             "name",
             "measurement_unit",
-            "amount",
+            # amount=("ingredients_amount__amount"),
         )
 
 
@@ -99,7 +99,7 @@ class RecipesReadSerializer(GetIngredientsMixin, serializers.ModelSerializer):
     """Сериализация объектов типа Recipes. Чтение рецептов."""
 
     tags = TagsSerializer(many=True)
-    author = CustomUserListSerializer(read_only=True)
+    author = UserSerializer()
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.BooleanField(default=False)
     in_the_shopping_list = serializers.BooleanField(default=False)
@@ -267,8 +267,7 @@ class CheckFollowSerializer(serializers.ModelSerializer):
     #             raise serializers.ValidationError("Вы уже подписаны!")
     #     if self.context.get("request").method == "DELETE":
     #         if user == author:
-    #             raise serializers.ValidationError(
-    # "Нельзя отписаться от себя!")
+    #             raise serializers.ValidationError("Нельзя отписаться от себя!")
     #         if not subscribed:
     #             raise serializers.ValidationError("Вы уже не подписаны!")
     #     return obj
