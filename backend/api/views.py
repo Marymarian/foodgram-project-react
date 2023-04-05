@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -98,6 +98,36 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @transaction.atomic()
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    # @action(
+    #     detail=True,
+    #     methods=["POST", "DELETE"],
+    # )
+    # def favorite(self, request, pk):
+    #     user = request.user
+    #     recipe = get_object_or_404(Recipes, pk=pk)
+    #     if self.request.method == "POST":
+    #         serializer = CheckFavouriteSerializer(
+    #             recipe, data=request.data, context={"request": request}
+    #         )
+    #         serializer.is_valid(raise_exception=True)
+    #         try:
+    #             FavouriteRecipes.objects.create(user=user, recipe=recipe)
+    #         except IntegrityError:
+    #             return Response(
+    #                 {"errors": "Рецепт уже в избранном!"},
+    #                 status=HTTPStatus.BAD_REQUEST,
+    #             )
+    #         return Response(serializer.data, status=HTTPStatus.CREATED)
+
+    #     if self.request.method == "DELETE":
+    #         get_object_or_404(
+    #             FavouriteRecipes, user=user, recipe=recipe
+    #         ).delete()
+    #         return Response(
+    #             {"detail": "Рецепт удален из избранногою"},
+    #             status=HTTPStatus.NO_CONTENT,
+    #         )
 
     @action(
         detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
@@ -214,47 +244,93 @@ class FollowViewSet(UserViewSet):
     """Класс взаимодействия с моделью Follow.Вьюсет подписок."""
 
     @action(
-        methods=["post"], detail=True, permission_classes=(IsAuthenticated,)
+        detail=True,
+        permission_classes=[IsAuthenticated],
+        methods=["POST", "DELETE"],
     )
-    @transaction.atomic()
     def subscribe(self, request, id=None):
         user = request.user
-        author = get_object_or_404(User, pk=id)
-        data = {
-            "user": user.id,
-            "author": author.id,
-        }
-        serializer = CheckFollowSerializer(
-            data=data,
-            context={"request": request},
-        )
-        serializer.is_valid(raise_exception=True)
-        result = Follow.objects.create(user=user, author=author)
-        serializer = FollowSerializer(result, context={"request": request})
-        return Response(serializer.data, status=HTTPStatus.CREATED)
+        author = get_object_or_404(User, id=id)
+        if request.method == "POST":
+            serializer = FollowSerializer(
+                author, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            try:
+                Follow.objects.create(user=user, author=author)
+            except IntegrityError:
+                return Response(
+                    {"errors": "Вы уже подписаны!"},
+                    status=HTTPStatus.BAD_REQUEST,
+                )
+            return Response(serializer.data, status=HTTPStatus.CREATED)
 
-    @subscribe.mapping.delete
-    @transaction.atomic()
-    def del_subscribe(self, request, id=None):
-        user = request.user
-        author = get_object_or_404(User, pk=id)
-        data = {
-            "user": user.id,
-            "author": author.id,
-        }
-        serializer = CheckFollowSerializer(
-            data=data,
-            context={"request": request},
-        )
-        serializer.is_valid(raise_exception=True)
-        user.follower.filter(author=author).delete()
+        subscription = Follow.objects.filter(user=user, author=author)
+        if not subscription.exists():
+            return Response(
+                {"errors": "Подписки нет."}, status=HTTPStatus.BAD_REQUEST
+            )
+        subscription.delete()
         return Response(status=HTTPStatus.NO_CONTENT)
+
+    # if Follow.objects.filter(user=user, author=author).exists():
+    #     follow = get_object_or_404(Follow, user=user, author=author)
+    #     follow.delete()
+    #     return Response(
+    #         "Подписка успешно удалена", status=HTTPStatus.NO_CONTENT
+    #     )
+    # if user == author:
+    #     return Response(
+    #         {"errors": "Нельзя отписаться от самого себя"},
+    #         status=HTTPStatus.BAD_REQUEST,
+    #     )
+    # return Response(
+    #     {"errors": "Вы не подписаны на данного пользователя"},
+    #     status=HTTPStatus.BAD_REQUEST,
+    # )
+
+    # @action(
+    #     methods=["post"], detail=True, permission_classes=(IsAuthenticated,)
+    # )
+    # @transaction.atomic()
+    # def subscribe(self, request, id=None):
+    #     user = request.user
+    #     author = get_object_or_404(User, pk=id)
+    #     data = {
+    #         "user": user.id,
+    #         "author": author.id,
+    #     }
+    #     serializer = CheckFollowSerializer(
+    #         data=data,
+    #         context={"request": request},
+    #     )
+    #     serializer.is_valid(raise_exception=True)
+    #     result = Follow.objects.create(user=user, author=author)
+    #     serializer = FollowSerializer(result, context={"request": request})
+    #     return Response(serializer.data, status=HTTPStatus.CREATED)
+
+    # @subscribe.mapping.delete
+    # @transaction.atomic()
+    # def del_subscribe(self, request, id=None):
+    #     user = request.user
+    #     author = get_object_or_404(User, pk=id)
+    #     data = {
+    #         "user": user.id,
+    #         "author": author.id,
+    #     }
+    #     serializer = CheckFollowSerializer(
+    #         data=data,
+    #         context={"request": request},
+    #     )
+    #     serializer.is_valid(raise_exception=True)
+    #     user.follower.filter(author=author).delete()
+    #     return Response(status=HTTPStatus.NO_CONTENT)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """Подписчики."""
         user = request.user
-        queryset = user.follower.all()
+        queryset = Follow.objects.filter(user=user)
         pages = self.paginate_queryset(queryset)
         serializer = FollowSerializer(
             pages, many=True, context={"request": request}
