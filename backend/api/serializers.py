@@ -267,7 +267,8 @@ class CheckFollowSerializer(serializers.ModelSerializer):
     #             raise serializers.ValidationError("Вы уже подписаны!")
     #     if self.context.get("request").method == "DELETE":
     #         if user == author:
-    #             raise serializers.ValidationError("Нельзя отписаться от себя!")
+    #             raise serializers.ValidationError(
+    # "Нельзя отписаться от себя!")
     #         if not subscribed:
     #             raise serializers.ValidationError("Вы уже не подписаны!")
     #     return obj
