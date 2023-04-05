@@ -24,7 +24,6 @@ from .filters import IngredientsSearchFilter, RecipesFilter
 from .permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (
     CheckFavouriteSerializer,
-    CheckShoppingListsSerializer,
     FollowSerializer,
     IngredientsSerializer,
     RecipeAddingSerializer,
