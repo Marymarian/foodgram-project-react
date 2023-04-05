@@ -14,7 +14,7 @@ from recipes.models import (
     ShoppingLists,
     Tags,
 )
-from rest_framework import exceptions, mixins, viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
