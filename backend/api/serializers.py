@@ -26,7 +26,7 @@ class GetIngredientsMixin:
             "id",
             "name",
             "measurement_unit",
-            "amount",
+            # "amount",
         )
 
 
