@@ -1,14 +1,8 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_base64.fields import Base64ImageField
-from recipes.models import (
-    FavouriteRecipes,
-    Ingredients,
-    IngredientsInRecipe,
-    Recipes,
-    ShoppingLists,
-    Tags,
-)
+from recipes.models import (FavouriteRecipes, Ingredients, IngredientsInRecipe,
+                            Recipes, ShoppingLists, Tags)
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueValidator
@@ -267,7 +261,7 @@ class CheckFollowSerializer(serializers.ModelSerializer):
     #             raise serializers.ValidationError("Вы уже подписаны!")
     #     if self.context.get("request").method == "DELETE":
     #         if user == author:
-    #             raise serializers.ValidationError("Нельзя отписаться от себя!")
+    #             raise serializers.ValidationError("Нельзя отписаться!")
     #         if not subscribed:
     #             raise serializers.ValidationError("Вы уже не подписаны!")
     #     return obj
