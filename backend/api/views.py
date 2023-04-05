@@ -14,7 +14,7 @@ from recipes.models import (
     ShoppingLists,
     Tags,
 )
-from rest_framework import mixins, viewsets
+from rest_framework import exceptions, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
@@ -161,41 +161,56 @@ class RecipesViewSet(viewsets.ModelViewSet):
         detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
     )
     def shopping_cart(self, request, pk=None):
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckShoppingListsSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return self.add_object(ShoppingLists, request.user, pk)
+        """В список покупок."""
+        user = self.request.user
+        recipe = get_object_or_404(Recipes, pk=pk)
+
+        if self.request.method == "POST":
+            if ShoppingLists.objects.filter(user=user, recipe=recipe).exists():
+                raise exceptions.ValidationError(
+                    "Рецепт уже в списке покупок."
+                )
+
+            ShoppingLists.objects.create(user=user, recipe=recipe)
+            serializer = RecipeAddingSerializer(
+                recipe, context={"request": request}
+            )
+
+            return Response(serializer.data, status=HTTPStatus.CREATED)
 
     @shopping_cart.mapping.delete
     def del_shopping_cart(self, request, pk=None):
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckShoppingListsSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return self.delete_object(ShoppingLists, request.user, pk)
+        """Убрать из списка покупок."""
+        if self.request.method == "DELETE":
+            if not ShoppingLists.objects.filter(
+                user=request.user.id, recipe=pk
+            ).exists():
+                raise exceptions.ValidationError(
+                    "Рецепта нет в списке покупок, либо он уже удален."
+                )
 
-    @transaction.atomic()
-    def add_object(self, model, user, pk):
-        "Создание и сохранение объектов."
-        recipe = get_object_or_404(Recipes, id=pk)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = RecipeAddingSerializer(recipe)
-        return Response(serializer.data, status=HTTPStatus.CREATED)
+            shopping_cart = get_object_or_404(
+                ShoppingLists, user=request.user.id, recipe=pk
+            )
+            shopping_cart.delete()
 
-    @transaction.atomic()
-    def delete_object(self, model, user, pk):
-        "Удаление объектов."
-        model.objects.filter(user=user, recipe__id=pk).delete()
-        return Response(status=HTTPStatus.NO_CONTENT)
+            return Response(status=HTTPStatus.NO_CONTENT)
+
+        return Response(status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+    # @transaction.atomic()
+    # def add_object(self, model, user, pk):
+    #     "Создание и сохранение объектов."
+    #     recipe = get_object_or_404(Recipes, id=pk)
+    #     model.objects.create(user=user, recipe=recipe)
+    #     serializer = RecipeAddingSerializer(recipe)
+    #     return Response(serializer.data, status=HTTPStatus.CREATED)
+
+    # @transaction.atomic()
+    # def delete_object(self, model, user, pk):
+    #     "Удаление объектов."
+    #     model.objects.filter(user=user, recipe__id=pk).delete()
+    #     return Response(status=HTTPStatus.NO_CONTENT)
 
     @action(
         methods=["get"], detail=False, permission_classes=(IsAuthenticated,)
