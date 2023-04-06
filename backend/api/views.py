@@ -25,7 +25,7 @@ from .permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (
     CheckFavouriteSerializer,
     CheckFollowSerializer,
-    CheckShoppingListsSerializer,
+    CheckShoppingCartSerializer,
     FollowSerializer,
     IngredientsSerializer,
     RecipeAddingSerializer,
@@ -134,7 +134,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             "user": request.user.id,
             "recipe": pk,
         }
-        serializer = CheckShoppingListsSerializer(
+        serializer = CheckShoppingCartSerializer(
             data=data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
@@ -146,7 +146,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             "user": request.user.id,
             "recipe": pk,
         }
-        serializer = CheckShoppingListsSerializer(
+        serializer = CheckShoppingCartSerializer(
             data=data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
@@ -165,33 +165,55 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return Response(status=HTTPStatus.NO_CONTENT)
 
     @action(
-        methods=["POST", "DELETE"],
-        detail=False,
-        permission_classes=(IsAuthenticated,),
+        methods=["get"], detail=False, permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        """Получение списка покупок в файле."""
-        shopping_list = ShoppingLists.objects.filter(user=self.request.user)
-        recipes = [item.recipe.id for item in shopping_list]
-        buy_list = (
-            IngredientsInRecipe.objects.filter(recipe__in=recipes)
-            .values("ingredient")
-            .annotate(amount=Sum("amount"))
+        ingredients = (
+            IngredientsInRecipe.objects.filter(recipe__list__user=request.user)
+            .values("ingredient__name", "ingredient__measurement_unit")
+            .order_by("ingredient__name")
+            .annotate(total=Sum("amount"))
         )
-
         result = TITLE_SHOP_LIST
-        for item in buy_list:
-            ingredient = Ingredients.objects.get(pk=item["ingredient"])
-            amount = item["amount"]
-            result += (
-                f"{ingredient.name}, {amount} "
-                f"{ingredient.measurement_unit}\n"
-            )
-
+        result += "\n".join(
+            [
+                f'{ingredient["ingredient__name"]} - {ingredient["total"]}/'
+                f'{ingredient["ingredient__measurement_unit"]}'
+                for ingredient in ingredients
+            ]
+        )
         response = HttpResponse(result, content_type="text/plain")
         response["Content-Disposition"] = f"attachment; filename={FILE_NAME}"
-
         return response
+
+    # @action(
+    #     methods=["POST", "DELETE"],
+    #     detail=False,
+    #     permission_classes=(IsAuthenticated,),
+    # )
+    # def download_shopping_cart(self, request):
+    #     """Получение списка покупок в файле."""
+    #     shopping_list = ShoppingLists.objects.filter(user=self.request.user)
+    #     recipes = [item.recipe.id for item in shopping_list]
+    #     buy_list = (
+    #         IngredientsInRecipe.objects.filter(recipe__in=recipes)
+    #         .values("ingredient")
+    #         .annotate(amount=Sum("amount"))
+    #     )
+
+    #     result = TITLE_SHOP_LIST
+    #     for item in buy_list:
+    #         ingredient = Ingredients.objects.get(pk=item["ingredient"])
+    #         amount = item["amount"]
+    #         result += (
+    #             f"{ingredient.name}, {amount} "
+    #             f"{ingredient.measurement_unit}\n"
+    #         )
+
+    #     response = HttpResponse(result, content_type="text/plain")
+    #     response["Content-Disposition"] = f"attachment; filename={FILE_NAME}"
+
+    #     return response
 
 
 class FollowViewSet(UserViewSet):

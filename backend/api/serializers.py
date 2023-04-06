@@ -296,8 +296,8 @@ class CheckFavouriteSerializer(serializers.ModelSerializer):
     #     return
 
 
-class CheckShoppingListsSerializer(serializers.ModelSerializer):
-    """Сериализация объектов типа ShoppingLists. Проверка списка покупок."""
+class CheckShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор для проверки корзины"""
 
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     recipe = serializers.PrimaryKeyRelatedField(queryset=Recipes.objects.all())
@@ -309,7 +309,7 @@ class CheckShoppingListsSerializer(serializers.ModelSerializer):
     # def validate(self, obj):
     #     user = self.context["request"].user
     #     recipe = obj["recipe"]
-    #     cart = user.list.filter(recipe=recipe).exists()
+    #     cart = user.cart.filter(recipe=recipe).exists()
 
     #     if self.context.get("request").method == "POST" and cart:
     #         raise serializers.ValidationError(
