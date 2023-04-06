@@ -301,7 +301,7 @@ class CheckFavouriteSerializer(serializers.ModelSerializer):
 
 
 class CheckShoppingCartSerializer(serializers.ModelSerializer):
-    """Сериализация объектов типа hoppingLists.Листа покупок."""
+    """Сериализация объектов типа shoppingLists.Листа покупок."""
 
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     recipe = serializers.PrimaryKeyRelatedField(queryset=Recipes.objects.all())
@@ -310,16 +310,16 @@ class CheckShoppingCartSerializer(serializers.ModelSerializer):
         model = ShoppingLists
         fields = ("user", "recipe")
 
-    # def validate(self, obj):
-    #     """Валидация добавления в корзину."""
-    #     user = self.context["request"].user
-    #     recipe = obj["recipe"]
-    #     cart = user.cart.filter(recipe=recipe).exists()
+    def validate(self, obj):
+        """Валидация добавления в корзину."""
+        user = self.context["request"].user
+        recipe = obj["recipe"]
+        shop_list = user.list.filter(recipe=recipe).exists()
 
-    #     if self.context.get("request").method == "POST" and cart:
-    #         raise serializers.ValidationError(
-    #             "Этот рецепт уже в списке покупок."
-    #         )
-    #     if self.context.get("request").method == "DELETE" and not cart:
-    #         raise serializers.ValidationError("Рецепт не в списке покупок.")
-    #     return obj
+        if self.context.get("request").method == "POST" and shop_list:
+            raise serializers.ValidationError(
+                "Этот рецепт уже в списке покупок."
+            )
+        if self.context.get("request").method == "DELETE" and not shop_list:
+            raise serializers.ValidationError("Рецепт не в списке покупок.")
+        return obj
