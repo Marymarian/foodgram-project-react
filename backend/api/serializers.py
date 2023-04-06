@@ -128,6 +128,7 @@ class RecipesWriteSerializer(GetIngredientsMixin, serializers.ModelSerializer):
         read_only_fields = ("author",)
 
     def validate(self, data):
+        """Валидация ингредиентов при заполнении рецепта."""
         ingredients = self.initial_data["ingredients"]
         ingredient_list = []
         if not ingredients:
@@ -147,11 +148,13 @@ class RecipesWriteSerializer(GetIngredientsMixin, serializers.ModelSerializer):
         return data
 
     def validate_cooking_time(self, time):
+        """Валидация времени приготовления."""
         if int(time) < 1:
             raise serializers.ValidationError("Минимальное время = 1")
         return time
 
     def add_ingredients_and_tags(self, instance, **validate_data):
+        """Добавление ингредиентов тегов."""
         ingredients = validate_data["ingredients"]
         tags = validate_data["tags"]
         for tag in tags:
@@ -226,6 +229,7 @@ class FollowSerializer(GetIsSubscribedMixin, serializers.ModelSerializer):
         )
 
     def get_recipes(self, obj):
+        """Получение рецептов автора."""
         request = self.context.get("request")
         limit = request.GET.get("recipes_limit")
         queryset = obj.author.recipes.all()
@@ -244,30 +248,29 @@ class CheckFollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ("user", "author")
 
-    # def validate(self, obj):
-    #     user = obj['user']
-    #     author = obj['author']
-    #     subscribed = user.follower.filter(author=author).exists()
+    def validate(self, obj):
+        """Валидация подписки."""
+        user = obj["user"]
+        author = obj["author"]
+        subscribed = user.follower.filter(author=author).exists()
 
-    #     if self.context.get('request').method == 'POST':
-    #         if user == author:
-    #             raise serializers.ValidationError(
-    #                 'Ошибка, на себя подписка не разрешена'
-    #             )
-    #         if subscribed:
-    #             raise serializers.ValidationError(
-    #                 'Ошибка, вы уже подписались'
-    #             )
-    #     if self.context.get('request').method == 'DELETE':
-    #         if user == author:
-    #             raise serializers.ValidationError(
-    #                 'Ошибка, отписка от самого себя не разрешена'
-    #             )
-    #         if not subscribed:
-    #             raise serializers.ValidationError(
-    #                 {'errors': 'Ошибка, вы уже отписались'}
-    #             )
-    #     return obj
+        if self.context.get("request").method == "POST":
+            if user == author:
+                raise serializers.ValidationError(
+                    "Ошибка, на себя подписка не разрешена"
+                )
+            if subscribed:
+                raise serializers.ValidationError("Ошибка, вы уже подписались")
+        if self.context.get("request").method == "DELETE":
+            if user == author:
+                raise serializers.ValidationError(
+                    "Ошибка, отписка от самого себя не разрешена"
+                )
+            if not subscribed:
+                raise serializers.ValidationError(
+                    {"errors": "Ошибка, вы уже отписались"}
+                )
+        return obj
 
 
 class CheckFavouriteSerializer(serializers.ModelSerializer):
