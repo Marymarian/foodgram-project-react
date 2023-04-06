@@ -93,19 +93,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 n_the_shop_list=Value(False, output_field=BooleanField()),
             )
 
-    # @transaction.atomic()
-    # def perform_create(self, serializer):
-    #     serializer.save(author=self.request.user)
-
     @transaction.atomic()
     def add_object(self, model, user, pk):
-        "Создание и сохранение объектов."
+        "Добавление объектов."
         recipe = get_object_or_404(Recipes, id=pk)
         try:
             model.objects.create(user=user, recipe=recipe)
         except IntegrityError:
             return Response(
-                {"errors": "Рецепт уже добавлен в избранное!"},
+                {"errors": "Рецепт уже добавлен!"},
                 status=HTTPStatus.BAD_REQUEST,
             )
         serializer = RecipeAddingSerializer(recipe)
@@ -117,41 +113,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
         object_list = model.objects.filter(user=user, recipe__id=pk)
         if not object_list.exists():
             return Response(
-                {"errors": "Рецепт не в избранном!"},
+                {"errors": "Такого рецепта нет!"},
                 status=HTTPStatus.BAD_REQUEST,
             )
         object_list.delete()
         return Response(status=HTTPStatus.NO_CONTENT)
-
-    # @action(
-    #     detail=True,
-    #     methods=["POST", "DELETE"],
-    # )
-    # def favorite(self, request, pk):
-    #     user = request.user
-    #     recipe = get_object_or_404(Recipes, pk=pk)
-    #     if self.request.method == "POST":
-    #         serializer = CheckFavouriteSerializer(
-    #             recipe, data=request.data, context={"request": request}
-    #         )
-    #         serializer.is_valid(raise_exception=True)
-    #         try:
-    #             FavouriteRecipes.objects.create(user=user, recipe=recipe)
-    #         except IntegrityError:
-    #             return Response(
-    #                 {"errors": "Рецепт уже в избранном!"},
-    #                 status=HTTPStatus.BAD_REQUEST,
-    #             )
-    #         return Response(serializer.data, status=HTTPStatus.CREATED)
-
-    #     if self.request.method == "DELETE":
-    #         get_object_or_404(
-    #             FavouriteRecipes, user=user, recipe=recipe
-    #         ).delete()
-    #         return Response(
-    #             {"detail": "Рецепт удален из избранногою"},
-    #             status=HTTPStatus.NO_CONTENT,
-    #         )
 
     @action(
         methods=["POST", "DELETE"],
@@ -159,7 +125,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request, pk):
-        """В избранное."""
+        """Добавить в избранное избранное и удалить."""
         if request.method == "POST":
             return self.add_object(FavouriteRecipes, request.user, pk)
         return self.delete_object(FavouriteRecipes, request.user, pk)
@@ -170,13 +136,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request, pk=None):
-        """В список покупок."""
+        """Добавить в список покупок и удалить."""
         if request.method == "POST":
             return self.add_object(ShoppingLists, request.user, pk)
         return self.delete_object(ShoppingLists, request.user, pk)
 
     @action(
-        methods=["get"], detail=False, permission_classes=(IsAuthenticated,)
+        methods=["POST", "DELETE"],
+        detail=False,
+        permission_classes=(IsAuthenticated,),
     )
     def download_shopping_cart(self, request):
         """Получение списка покупок в файле."""
@@ -207,11 +175,12 @@ class FollowViewSet(UserViewSet):
     """Класс взаимодействия с моделью Follow.Вьюсет подписок."""
 
     @action(
-        detail=True,
-        permission_classes=[IsAuthenticated],
         methods=["POST", "DELETE"],
+        detail=True,
+        permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id=None):
+        """Подписаться/отписаться."""
         user = request.user
         author = get_object_or_404(User, id=id)
         if request.method == "POST":
@@ -231,7 +200,8 @@ class FollowViewSet(UserViewSet):
         subscription = Follow.objects.filter(user=user, author=author)
         if not subscription.exists():
             return Response(
-                {"errors": "Подписки нет."}, status=HTTPStatus.BAD_REQUEST
+                {"errors": "Подписка не найдена!"},
+                status=HTTPStatus.BAD_REQUEST,
             )
         subscription.delete()
         return Response(status=HTTPStatus.NO_CONTENT)

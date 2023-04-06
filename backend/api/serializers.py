@@ -250,10 +250,10 @@ class FollowSerializer(serializers.ModelSerializer):
     """Сериализация объектов типа Follow. Подписки."""
 
     id = serializers.ReadOnlyField(source="author.id")
-    # email = serializers.ReadOnlyField(source="author.email")
-    # username = serializers.ReadOnlyField(source="author.username")
-    # first_name = serializers.ReadOnlyField(source="author.first_name")
-    # last_name = serializers.ReadOnlyField(source="author.last_name")
+    email = serializers.ReadOnlyField(source="author.email")
+    username = serializers.ReadOnlyField(source="author.username")
+    first_name = serializers.ReadOnlyField(source="author.first_name")
+    last_name = serializers.ReadOnlyField(source="author.last_name")
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -295,29 +295,29 @@ class FollowSerializer(serializers.ModelSerializer):
         return False
 
 
-class CheckFollowSerializer(serializers.ModelSerializer):
-    """Сериализация объектов типа Follow. Проверка подписки."""
+# class CheckFollowSerializer(serializers.ModelSerializer):
+#     """Сериализация объектов типа Follow. Проверка подписки."""
 
-    class Meta:
-        model = Follow
-        fields = ("user", "author")
+#     class Meta:
+#         model = Follow
+#         fields = ("user", "author")
 
-    # def validate(self, obj):
-    #     """Валидация подписки."""
-    #     user = obj["user"]
-    #     author = obj["author"]
-    #     subscribed = user.follower.filter(author=author).exists()
+# def validate(self, obj):
+#     """Валидация подписки."""
+#     user = obj["user"]
+#     author = obj["author"]
+#     subscribed = user.follower.filter(author=author).exists()
 
-    #     if self.context.get("request").method == "POST":
-    #         if user == author:
-    #             raise serializers.ValidationError(
-    #                 "Нельзя подписаться на самого себя!"
-    #             )
-    #         if subscribed:
-    #             raise serializers.ValidationError("Вы уже подписаны!")
-    #     if self.context.get("request").method == "DELETE":
-    #         if user == author:
-    #             raise serializers.ValidationError("Нельзя отписаться!")
-    #         if not subscribed:
-    #             raise serializers.ValidationError("Вы уже не подписаны!")
-    #     return obj
+#     if self.context.get("request").method == "POST":
+#         if user == author:
+#             raise serializers.ValidationError(
+#                 "Нельзя подписаться на самого себя!"
+#             )
+#         if subscribed:
+#             raise serializers.ValidationError("Вы уже подписаны!")
+#     if self.context.get("request").method == "DELETE":
+#         if user == author:
+#             raise serializers.ValidationError("Нельзя отписаться!")
+#         if not subscribed:
+#             raise serializers.ValidationError("Вы уже не подписаны!")
+#     return obj
