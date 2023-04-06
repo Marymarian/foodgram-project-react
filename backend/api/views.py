@@ -23,7 +23,6 @@ from users.models import Follow
 from .filters import IngredientsSearchFilter, RecipesFilter
 from .permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (
-    CheckFavouriteSerializer,
     FollowSerializer,
     IngredientsSerializer,
     RecipeAddingSerializer,
