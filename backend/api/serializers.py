@@ -227,11 +227,12 @@ class FollowSerializer(GetIsSubscribedMixin, serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get("request")
-        limit = request.query_params.get("recipes_limit")
-        queryset = obj.author.recipes.all()
-        if limit:
-            queryset = queryset[: int(limit)]
-        return RecipeAddingSerializer(queryset, many=True).data
+        queryset = obj.recipes.all()
+        recipes_limit = request.query_params.get("recipes_limit")
+        if recipes_limit:
+            queryset = queryset[: int(recipes_limit)]
+        serializer = RecipeAddingSerializer(queryset, many=True)
+        return serializer.data
 
     def get_recipes_count(self, obj):
         return obj.author.recipes.all().count()
