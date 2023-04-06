@@ -236,66 +236,13 @@ class FollowViewSet(UserViewSet):
         subscription.delete()
         return Response(status=HTTPStatus.NO_CONTENT)
 
-    # if Follow.objects.filter(user=user, author=author).exists():
-    #     follow = get_object_or_404(Follow, user=user, author=author)
-    #     follow.delete()
-    #     return Response(
-    #         "Подписка успешно удалена", status=HTTPStatus.NO_CONTENT
-    #     )
-    # if user == author:
-    #     return Response(
-    #         {"errors": "Нельзя отписаться от самого себя"},
-    #         status=HTTPStatus.BAD_REQUEST,
-    #     )
-    # return Response(
-    #     {"errors": "Вы не подписаны на данного пользователя"},
-    #     status=HTTPStatus.BAD_REQUEST,
-    # )
-
-    # @action(
-    #     methods=["post"], detail=True, permission_classes=(IsAuthenticated,)
-    # )
-    # @transaction.atomic()
-    # def subscribe(self, request, id=None):
-    #     user = request.user
-    #     author = get_object_or_404(User, pk=id)
-    #     data = {
-    #         "user": user.id,
-    #         "author": author.id,
-    #     }
-    #     serializer = CheckFollowSerializer(
-    #         data=data,
-    #         context={"request": request},
-    #     )
-    #     serializer.is_valid(raise_exception=True)
-    #     result = Follow.objects.create(user=user, author=author)
-    #     serializer = FollowSerializer(result, context={"request": request})
-    #     return Response(serializer.data, status=HTTPStatus.CREATED)
-
-    # @subscribe.mapping.delete
-    # @transaction.atomic()
-    # def del_subscribe(self, request, id=None):
-    #     user = request.user
-    #     author = get_object_or_404(User, pk=id)
-    #     data = {
-    #         "user": user.id,
-    #         "author": author.id,
-    #     }
-    #     serializer = CheckFollowSerializer(
-    #         data=data,
-    #         context={"request": request},
-    #     )
-    #     serializer.is_valid(raise_exception=True)
-    #     user.follower.filter(author=author).delete()
-    #     return Response(status=HTTPStatus.NO_CONTENT)
-
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """Подписчики."""
         user = request.user
-        queryset = Follow.objects.filter(user=user)
+        queryset = Follow.objects.filter(following_user=user)
         pages = self.paginate_queryset(queryset)
         serializer = FollowSerializer(
-            pages, many=True, context={"request": request}
+            pages, context={"request": request}, many=True
         )
         return self.get_paginated_response(serializer.data)
