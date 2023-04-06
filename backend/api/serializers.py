@@ -200,7 +200,7 @@ class RecipeAddingSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "name", "image", "cooking_time")
 
 
-class FollowSerializer(serializers.ModelSerializer):
+class FollowSerializer(GetIsSubscribedMixin, serializers.ModelSerializer):
     """Сериализация объектов типа Follow. Подписки."""
 
     id = serializers.ReadOnlyField(source="author.id")
@@ -319,4 +319,4 @@ class CheckShoppingListsSerializer(serializers.ModelSerializer):
     #         raise serializers.ValidationError(
     #             "Этот рецепт отсутствует в корзине"
     #         )
-    #     return
+    #     return obj
