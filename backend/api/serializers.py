@@ -194,6 +194,8 @@ class RecipeAddingSerializer(serializers.ModelSerializer):
     Добавление в избранное/список покупок.
     """
 
+    image = Base64ImageField()
+
     class Meta:
         model = Recipes
         fields = ("id", "name", "image", "cooking_time")

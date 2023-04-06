@@ -98,6 +98,32 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    @transaction.atomic()
+    def add_object(self, model, user, pk):
+        "Создание и сохранение объектов."
+        recipe = get_object_or_404(Recipes, id=pk)
+        try:
+            model.objects.create(user=user, recipe=recipe)
+        except IntegrityError:
+            return Response(
+                {"errors": "Рецепт уже добавлен в избранное!"},
+                status=HTTPStatus.BAD_REQUEST,
+            )
+        serializer = RecipeAddingSerializer(recipe)
+        return Response(serializer.data, status=HTTPStatus.CREATED)
+
+    @transaction.atomic()
+    def delete_object(self, model, user, pk):
+        "Удаление объектов."
+        object_list = model.objects.filter(user=user, recipe__id=pk)
+        if not object_list.exists():
+            return Response(
+                {"errors": "Рецепт не в избранном!"},
+                status=HTTPStatus.BAD_REQUEST,
+            )
+        object_list.delete()
+        return Response(status=HTTPStatus.NO_CONTENT)
+
     # @action(
     #     detail=True,
     #     methods=["POST", "DELETE"],
@@ -129,31 +155,14 @@ class RecipesViewSet(viewsets.ModelViewSet):
     #         )
 
     @action(
-        detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
+        methods=["POST", "DELETE"],
+        detail=True,
+        permission_classes=(IsAuthenticated,),
     )
-    def favorite(self, request, pk=None):
+    def favorite(self, request, pk):
         """В избранное."""
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckFavouriteSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return self.add_object(FavouriteRecipes, request.user, pk)
-
-    @favorite.mapping.delete
-    def del_favorite(self, request, pk=None):
-        """Убрать из избранного."""
-        data = {
-            "user": request.user.id,
-            "recipe": pk,
-        }
-        serializer = CheckFavouriteSerializer(
-            data=data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
+        if request.method == "POST":
+            return self.add_object(FavouriteRecipes, request.user, pk)
         return self.delete_object(FavouriteRecipes, request.user, pk)
 
     @action(
@@ -196,20 +205,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return Response(status=HTTPStatus.NO_CONTENT)
 
         return Response(status=HTTPStatus.METHOD_NOT_ALLOWED)
-
-    # @transaction.atomic()
-    # def add_object(self, model, user, pk):
-    #     "Создание и сохранение объектов."
-    #     recipe = get_object_or_404(Recipes, id=pk)
-    #     model.objects.create(user=user, recipe=recipe)
-    #     serializer = RecipeAddingSerializer(recipe)
-    #     return Response(serializer.data, status=HTTPStatus.CREATED)
-
-    # @transaction.atomic()
-    # def delete_object(self, model, user, pk):
-    #     "Удаление объектов."
-    #     model.objects.filter(user=user, recipe__id=pk).delete()
-    #     return Response(status=HTTPStatus.NO_CONTENT)
 
     @action(
         methods=["get"], detail=False, permission_classes=(IsAuthenticated,)
