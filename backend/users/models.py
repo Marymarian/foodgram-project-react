@@ -33,7 +33,7 @@ class Follow(models.Model):
                 name="unique_follow",
             ),
             models.CheckConstraint(
-                check=models.Q(user=models.F("author")),
+                check=~models.Q(user=models.F("author")),
                 name="self_subscription_prohibited",
             ),
         )
