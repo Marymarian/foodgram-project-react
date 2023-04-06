@@ -44,14 +44,14 @@ class RecipesFilter(FilterSet):
     author = filters.AllValuesMultipleFilter(
         field_name="author__id", label="Автор"
     )
-    in_the_shop_list = filters.BooleanFilter(
+    is_in_shopping_cart = filters.BooleanFilter(
         widget=BooleanWidget(), label="В списке покупок."
     )
-    is_favourited = filters.BooleanFilter(
+    is_favorited = filters.BooleanFilter(
         widget=BooleanWidget(), label="В избранном."
     )
     tags = TagsFilter(field_name="tags__slug")
 
     class Meta:
         model = Recipes
-        fields = ("author", "tags", "in_the_shop_list", "is_favourited")
+        fields = ("author", "tags", "is_in_shopping_cart", "is_favorited")
