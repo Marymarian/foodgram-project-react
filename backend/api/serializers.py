@@ -283,21 +283,21 @@ class CheckFavouriteSerializer(serializers.ModelSerializer):
         model = FavouriteRecipes
         fields = ("user", "recipe")
 
-    # def validate(self, obj):
-    #     """Валидация добавления в избранное."""
-    #     user = self.context["request"].user
-    #     recipe = obj["recipe"]
-    #     favorite = user.favourites.filter(recipe=recipe).exists()
+    def validate(self, obj):
+        """Валидация добавления в избранное."""
+        user = self.context["request"].user
+        recipe = obj["recipe"]
+        favorite = user.favourites.filter(recipe=recipe).exists()
 
-    #     if self.context.get("request").method == "POST" and favorite:
-    #         raise serializers.ValidationError(
-    #             "Этот рецепт уже добавлен в избранном"
-    #         )
-    #     if self.context.get("request").method == "DELETE" and not favorite:
-    #         raise serializers.ValidationError(
-    #             "Этот рецепт отсутствует в избранном"
-    #         )
-    #     return
+        if self.context.get("request").method == "POST" and favorite:
+            raise serializers.ValidationError(
+                "Этот рецепт уже добавлен в избранном"
+            )
+        if self.context.get("request").method == "DELETE" and not favorite:
+            raise serializers.ValidationError(
+                "Этот рецепт отсутствует в избранном"
+            )
+        return obj
 
 
 class CheckShoppingCartSerializer(serializers.ModelSerializer):
