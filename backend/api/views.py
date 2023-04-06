@@ -14,7 +14,7 @@ from recipes.models import (
     ShoppingLists,
     Tags,
 )
-from rest_framework import exceptions, mixins, viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
@@ -93,9 +93,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 n_the_shop_list=Value(False, output_field=BooleanField()),
             )
 
-    @transaction.atomic()
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    # @transaction.atomic()
+    # def perform_create(self, serializer):
+    #     serializer.save(author=self.request.user)
 
     @transaction.atomic()
     def add_object(self, model, user, pk):
@@ -165,45 +165,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return self.delete_object(FavouriteRecipes, request.user, pk)
 
     @action(
-        detail=True, methods=["post"], permission_classes=(IsAuthenticated,)
+        methods=["POST", "DELETE"],
+        detail=True,
+        permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request, pk=None):
         """В список покупок."""
-        user = self.request.user
-        recipe = get_object_or_404(Recipes, pk=pk)
-
-        if self.request.method == "POST":
-            if ShoppingLists.objects.filter(user=user, recipe=recipe).exists():
-                raise exceptions.ValidationError(
-                    "Рецепт уже в списке покупок."
-                )
-
-            ShoppingLists.objects.create(user=user, recipe=recipe)
-            serializer = RecipeAddingSerializer(
-                recipe, context={"request": request}
-            )
-
-            return Response(serializer.data, status=HTTPStatus.CREATED)
-
-    @shopping_cart.mapping.delete
-    def del_shopping_cart(self, request, pk=None):
-        """Убрать из списка покупок."""
-        if self.request.method == "DELETE":
-            if not ShoppingLists.objects.filter(
-                user=request.user.id, recipe=pk
-            ).exists():
-                raise exceptions.ValidationError(
-                    "Рецепта нет в списке покупок, либо он уже удален."
-                )
-
-            shopping_cart = get_object_or_404(
-                ShoppingLists, user=request.user.id, recipe=pk
-            )
-            shopping_cart.delete()
-
-            return Response(status=HTTPStatus.NO_CONTENT)
-
-        return Response(status=HTTPStatus.METHOD_NOT_ALLOWED)
+        if request.method == "POST":
+            return self.add_object(ShoppingLists, request.user, pk)
+        return self.delete_object(ShoppingLists, request.user, pk)
 
     @action(
         methods=["get"], detail=False, permission_classes=(IsAuthenticated,)
