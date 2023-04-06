@@ -101,9 +101,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(
-        detail=True, methods=["post"], permission_classes=[IsAuthenticated]
+        detail=True, methods=["POST"], permission_classes=(IsAuthenticated,)
     )
     def favorite(self, request, pk=None):
+        """Добавить в избранное."""
         data = {
             "user": request.user.id,
             "recipe": pk,
@@ -116,6 +117,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @favorite.mapping.delete
     def del_favorite(self, request, pk=None):
+        """Убрать из избранного."""
         data = {
             "user": request.user.id,
             "recipe": pk,
@@ -127,9 +129,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return self.delete_object(FavouriteRecipes, request.user, pk)
 
     @action(
-        detail=True, methods=["post"], permission_classes=[IsAuthenticated]
+        detail=True, methods=["POST"], permission_classes=(IsAuthenticated,)
     )
     def shopping_cart(self, request, pk=None):
+        """Добавить в лист покупок."""
         data = {
             "user": request.user.id,
             "recipe": pk,
@@ -142,6 +145,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @shopping_cart.mapping.delete
     def del_shopping_cart(self, request, pk=None):
+        """Убрать из листа покупок."""
         data = {
             "user": request.user.id,
             "recipe": pk,
@@ -154,6 +158,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic()
     def add_object(self, model, user, pk):
+        """Добавление объектов для избранного/спсика покупок."""
         recipe = get_object_or_404(Recipes, id=pk)
         model.objects.create(user=user, recipe=recipe)
         serializer = RecipeAddingSerializer(recipe)
@@ -161,13 +166,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic()
     def delete_object(self, model, user, pk):
+        """Удаление объектов для избранного/спсика покупок."""
         model.objects.filter(user=user, recipe__id=pk).delete()
         return Response(status=HTTPStatus.NO_CONTENT)
 
     @action(
-        methods=["get"], detail=False, permission_classes=[IsAuthenticated]
+        methods=["GET"], detail=False, permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
+        """Скачать файл листа покупок."""
         ingredients = (
             IngredientsInRecipe.objects.filter(recipe__list__user=request.user)
             .values("ingredient__name", "ingredient__measurement_unit")
@@ -176,51 +183,22 @@ class RecipesViewSet(viewsets.ModelViewSet):
         )
         result = TITLE_SHOP_LIST
         result += "\n".join(
-            [
+            (
                 f'{ingredient["ingredient__name"]} - {ingredient["total"]}/'
                 f'{ingredient["ingredient__measurement_unit"]}'
                 for ingredient in ingredients
-            ]
+            )
         )
         response = HttpResponse(result, content_type="text/plain")
         response["Content-Disposition"] = f"attachment; filename={FILE_NAME}"
         return response
-
-    # @action(
-    #     methods=["POST", "DELETE"],
-    #     detail=False,
-    #     permission_classes=(IsAuthenticated,),
-    # )
-    # def download_shopping_cart(self, request):
-    #     """Получение списка покупок в файле."""
-    #     shopping_list = ShoppingLists.objects.filter(user=self.request.user)
-    #     recipes = [item.recipe.id for item in shopping_list]
-    #     buy_list = (
-    #         IngredientsInRecipe.objects.filter(recipe__in=recipes)
-    #         .values("ingredient")
-    #         .annotate(amount=Sum("amount"))
-    #     )
-
-    #     result = TITLE_SHOP_LIST
-    #     for item in buy_list:
-    #         ingredient = Ingredients.objects.get(pk=item["ingredient"])
-    #         amount = item["amount"]
-    #         result += (
-    #             f"{ingredient.name}, {amount} "
-    #             f"{ingredient.measurement_unit}\n"
-    #         )
-
-    #     response = HttpResponse(result, content_type="text/plain")
-    #     response["Content-Disposition"] = f"attachment; filename={FILE_NAME}"
-
-    #     return response
 
 
 class FollowViewSet(UserViewSet):
     """Класс взаимодействия с моделью Follow. Вьюсет подписок."""
 
     @action(
-        methods=["post"], detail=True, permission_classes=[IsAuthenticated]
+        methods=["POST"], detail=True, permission_classes=(IsAuthenticated,)
     )
     @transaction.atomic()
     def subscribe(self, request, id=None):
@@ -258,7 +236,7 @@ class FollowViewSet(UserViewSet):
         user.follower.filter(author=author).delete()
         return Response(status=HTTPStatus.NO_CONTENT)
 
-    @action(detail=False, permission_classes=[IsAuthenticated])
+    @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """Подписки."""
         user = request.user
