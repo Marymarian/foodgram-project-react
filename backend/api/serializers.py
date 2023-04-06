@@ -283,24 +283,25 @@ class CheckFavouriteSerializer(serializers.ModelSerializer):
         model = FavouriteRecipes
         fields = ("user", "recipe")
 
-    # def validate(self, obj):
-    #     user = self.context["request"].user
-    #     recipe = obj["recipe"]
-    #     favorite = user.favourites.filter(recipe=recipe).exists()
+    def validate(self, obj):
+        """Валидация добавления в избранное."""
+        user = self.context["request"].user
+        recipe = obj["recipe"]
+        favorite = user.favourites.filter(recipe=recipe).exists()
 
-    #     if self.context.get("request").method == "POST" and favorite:
-    #         raise serializers.ValidationError(
-    #             "Этот рецепт уже добавлен в избранном"
-    #         )
-    #     if self.context.get("request").method == "DELETE" and not favorite:
-    #         raise serializers.ValidationError(
-    #             "Этот рецепт отсутствует в избранном"
-    #         )
-    #     return
+        if self.context.get("request").method == "POST" and favorite:
+            raise serializers.ValidationError(
+                "Этот рецепт уже добавлен в избранном"
+            )
+        if self.context.get("request").method == "DELETE" and not favorite:
+            raise serializers.ValidationError(
+                "Этот рецепт отсутствует в избранном"
+            )
+        return
 
 
 class CheckShoppingCartSerializer(serializers.ModelSerializer):
-    """Сериализатор для проверки корзины"""
+    """Сериализация объектов типа hoppingLists.Листа покупок."""
 
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     recipe = serializers.PrimaryKeyRelatedField(queryset=Recipes.objects.all())
@@ -309,17 +310,16 @@ class CheckShoppingCartSerializer(serializers.ModelSerializer):
         model = ShoppingLists
         fields = ("user", "recipe")
 
-    # def validate(self, obj):
-    #     user = self.context["request"].user
-    #     recipe = obj["recipe"]
-    #     cart = user.cart.filter(recipe=recipe).exists()
+    def validate(self, obj):
+        """Валидация добавления в корзину."""
+        user = self.context["request"].user
+        recipe = obj["recipe"]
+        cart = user.cart.filter(recipe=recipe).exists()
 
-    #     if self.context.get("request").method == "POST" and cart:
-    #         raise serializers.ValidationError(
-    #             "Этот рецепт уже добавлен в корзину"
-    #         )
-    #     if self.context.get("request").method == "DELETE" and not cart:
-    #         raise serializers.ValidationError(
-    #             "Этот рецепт отсутствует в корзине"
-    #         )
-    #     return obj
+        if self.context.get("request").method == "POST" and cart:
+            raise serializers.ValidationError(
+                "Этот рецепт уже в списке покупок."
+            )
+        if self.context.get("request").method == "DELETE" and not cart:
+            raise serializers.ValidationError("Рецепт не в списке покупок.")
+        return obj

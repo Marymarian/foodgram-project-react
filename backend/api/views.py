@@ -55,7 +55,7 @@ class TagsViewSet(ListRetrieveViewSet):
 
 
 class IngredientsViewSet(ListRetrieveViewSet):
-    """Класс взаимодействия с моделью Ingredients.Вьюсет для ингредиентов."""
+    """Класс взаимодействия с моделью Ingredients. Вьюсет для ингредиентов."""
 
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
@@ -217,13 +217,14 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 
 class FollowViewSet(UserViewSet):
-    """Класс взаимодействия с моделью Follow.Вьюсет подписок."""
+    """Класс взаимодействия с моделью Follow. Вьюсет подписок."""
 
     @action(
         methods=["post"], detail=True, permission_classes=[IsAuthenticated]
     )
     @transaction.atomic()
     def subscribe(self, request, id=None):
+        """Подписка на автора."""
         user = request.user
         author = get_object_or_404(User, pk=id)
         data = {
@@ -242,6 +243,7 @@ class FollowViewSet(UserViewSet):
     @subscribe.mapping.delete
     @transaction.atomic()
     def del_subscribe(self, request, id=None):
+        """Отписка от автора."""
         user = request.user
         author = get_object_or_404(User, pk=id)
         data = {
@@ -258,6 +260,7 @@ class FollowViewSet(UserViewSet):
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
+        """Подписки."""
         user = request.user
         queryset = user.follower.all()
         pages = self.paginate_queryset(queryset)
@@ -265,11 +268,3 @@ class FollowViewSet(UserViewSet):
             pages, many=True, context={"request": request}
         )
         return self.get_paginated_response(serializer.data)
-
-    # def subscriptions(self, request):
-    #     queryset = User.objects.filter(following__user=request.user)
-    #     page = self.paginate_queryset(queryset)
-    #     serializer = FollowSerializer(
-    #         page, context={"request": request}, many=True
-    #     )
-    #     return self.get_paginated_response(serializer.data)
