@@ -322,7 +322,8 @@ class CheckFollowSerializer(serializers.ModelSerializer):
 #     """Сериализация объектов типа FavouriteRecipes. Проверка избранного."""
 
 #     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-#     recipe = serializers.PrimaryKeyRelatedField(queryset=Recipes.objects.all())
+#     recipe = serializers.PrimaryKeyRelatedField(
+# queryset=Recipes.objects.all())
 
 #     class Meta:
 #         model = FavouriteRecipes
@@ -347,7 +348,8 @@ class CheckFollowSerializer(serializers.ModelSerializer):
 #     """Сериализация объектов типа ShoppingLists. Проверка списка покупок."""
 
 #     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-#     recipe = serializers.PrimaryKeyRelatedField(queryset=Recipes.objects.all())
+#     recipe = serializers.PrimaryKeyRelatedField(
+# queryset=Recipes.objects.all())
 
 #     class Meta:
 #         model = ShoppingLists
