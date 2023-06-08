@@ -1,5 +1,3 @@
-![example workflow](https://github.com/Marymarian/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
-
 # Основной адрес проекта
 * 127.0.0.1/ (http://<your.ip>/)
 # Страница рецептов
