@@ -1,11 +1,11 @@
 ![example workflow](https://github.com/Marymarian/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
 # Основной адрес проекта
-* http://158.160.8.9/
+* 127.0.0.1/ (http://<your.ip>/)
 # Страница рецептов
-* http://158.160.8.9/recipes
+* 127.0.0.1/recipes (http://<your.ip>/recipes)
 # Админ-панель
-* http://158.160.8.9/admin
+* 127.0.0.1/admin (http://<your.ip>/admin)
 
 # Проект Foodgram
 Cайт Foodgram - «Продуктовый помощник». Это онлайн-сервис и API для него. На этом сервисе пользователи смогут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
@@ -82,6 +82,7 @@ Python 3.7, Django 2.2.27, Django REST, Docker.
 
 
 ## Демо
+### Проект был развернут на удаленном сервере | YandexCloud
 ### Рецепты
 ![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/recipes2.gif) 
 ### Еще рецепты
