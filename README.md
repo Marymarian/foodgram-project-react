@@ -81,3 +81,26 @@ Python 3.7, Django 2.2.27, Django REST, Docker.
 - [@Marymarian](https://www.github.com/Marymarian)
 
 
+## Демо
+### Рецепты
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/recipes2.gif) 
+### Еще рецепты
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/recipes.gif)
+### Избранное
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/favorites.gif)
+### Подписки
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/follows.gif)
+### Добавление рецепта
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/get_recipes.gif)
+### Список покупок
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/shop_cart.gif)
+### Рецепт
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/resipe.gif)
+### Тэги
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/tags.gif)
+### Регистрация
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/sign_in.gif)
+### Вход
+![](https://github.com/Marymarian/foodgram-project-react/blob/master/gif/log_in.gif)
+
+
