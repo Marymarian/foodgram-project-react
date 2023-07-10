@@ -33,13 +33,13 @@ python3 manage.py runserver
 Создайте файл /infra/.env. 
 
 # Шаблон наполнения env-файла
-DB_ENGINE= указываем базу, с которой работаем: django.db.backends.postgresql
-DB_NAME= имя БД
-POSTGRES_USER= логин для подключения
-POSTGRES_PASSWORD= пароль для подключения
-DB_HOST= название контейнера
-DB_PORT= порт для подключения к БД, например 5432
-SECRET_KEY= секретный ключ Джанго
+* DB_ENGINE= указываем базу, с которой работаем: django.db.backends.postgresql
+* DB_NAME= имя БД
+* POSTGRES_USER= логин для подключения
+* POSTGRES_PASSWORD= пароль для подключения
+* DB_HOST= название контейнера
+* DB_PORT= порт для подключения к БД, например 5432
+* SECRET_KEY= секретный ключ Джанго
 
 Перейдите в раздел infra для сборки docker-compose:
 ```
